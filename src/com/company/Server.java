@@ -17,10 +17,10 @@ public class Server {
     public InetAddress getServerIPAddress() { return serverIPAddress; }
     public int getServerPort() { return serverPort; }
 
-    public void sendMessageToServer(String content, Client fromNode) {
+    public void sendMessageToServer(String content) {
         try {
             DatagramPacket packet = new DatagramPacket(content.getBytes(), content.getBytes().length, serverIPAddress, serverPort);
-            DatagramSocket socket = new DatagramSocket(fromNode.getNodePort());
+            DatagramSocket socket = new DatagramSocket();
             socket.send(packet);
             socket.close();
         } catch (Exception error) {

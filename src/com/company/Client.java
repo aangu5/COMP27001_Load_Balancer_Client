@@ -1,6 +1,8 @@
 package com.company;
 
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 
 public class Client {
@@ -9,7 +11,7 @@ public class Client {
 
     public Client(int inputPort) {
         try {
-            nodeIPAddress = InetAddress.getByName("localhost");
+            nodeIPAddress = InetAddress.getLocalHost();
             nodePort = inputPort;
         } catch (UnknownHostException error) {
             error.printStackTrace();
