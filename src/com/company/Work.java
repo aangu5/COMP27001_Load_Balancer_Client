@@ -1,8 +1,13 @@
 package com.company;
 
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Work extends Thread {
+
+    private static final Logger logger = Logger.getLogger(Work.class.getName());
+
     private int workID;
     private int duration;
     private Client thisNode;
@@ -14,9 +19,9 @@ public class Work extends Thread {
             mainNode = inputServer;
             this.workID = workID;
             duration = inputDuration;
-            System.out.println("Work Thread: Work created! ID: " + workID + ", duration: " + duration);
+            logger.log(Level.INFO, "Work Thread: Work created! ID: {}, duration: {}", new Object[] {workID, duration});
         } catch (Exception e) {
-            System.out.println("Input not recognised: " + e.getMessage());
+            logger.log(Level.WARNING, "Input not recognised: {}", e.getMessage());
         }
     }
 
@@ -29,14 +34,14 @@ public class Work extends Thread {
     @Override
     public void run() {
         for (int i = 0; i < duration; i++){
-            System.out.println("Work Thread: Task " + workID + " progress " + i + "/" + duration);
+            logger.log(Level.INFO, "Work Thread: Task {} progress: {}/{}", new Object[] { workID, i, duration });
             try {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        System.out.println("Work Thread: Task " + workID + " is complete");
+        logger.log(Level.INFO, "Work Thread: Task {} is complete", workID);
         workComplete();
     }
 }

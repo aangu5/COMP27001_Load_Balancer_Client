@@ -8,7 +8,6 @@ public class Client {
     private int nodePort = 0;
     private int maxJobs = 0;
     private int currentJobs = 0;
-    private boolean isWorking = false;
 
     public Client(int inputPort, int inputJobLimit) {
         try {

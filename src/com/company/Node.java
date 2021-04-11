@@ -2,13 +2,17 @@ package com.company;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Node {
+
+    private static final Logger logger = Logger.getLogger(Node.class.getName());
 
     public static void main(String[] args){
 
         if(args.length != 4) {
-            System.out.println("That is not enough arguments - Sender <client port> <server ip address> <server port> <node job limit>");
+            logger.log(Level.SEVERE, "That is not enough arguments - Sender <client port> <server ip address> <server port> <node job limit>");
         } else {
             try {
                 int clientPort = Integer.parseInt(args[0].trim());

@@ -3,11 +3,15 @@ package com.company;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ClientSystem extends Thread {
 
-    Server mainNode;
-    Client thisClient;
+    private static final Logger logger = Logger.getLogger(ClientSystem.class.getName());
+
+    final Server mainNode;
+    final Client thisClient;
 
     public ClientSystem(int clientPort, InetAddress serverIP, int serverPort, int jobLimit) {
         mainNode = new Server(serverIP, serverPort);
@@ -18,56 +22,66 @@ public class ClientSystem extends Thread {
     public void run() {
         String messageToSend = "NEW," + thisClient.getNodeIPAddress().getHostAddress() + "," + thisClient.getNodePort() + "," + thisClient.getMaxJobs();
         mainNode.sendMessageToServer(messageToSend);
-        System.out.println("Main Thread: Message sent");
+        logger.log(Level.INFO, "Main Thread: Message sent");
 
         while (true) {
             String messageReceived = awaitMessageFromServer();
-            System.out.println("Main Thread: " + messageReceived);
+            logger.log(Level.INFO, "Main Thread: {}", messageReceived);
             String[] elements = messageReceived.split(",".trim());
             String inputMessage = elements[0].trim();
             switch (inputMessage) {
-                case "ACCEPTED" -> {
-                    messageToSend = "READY";
-                    mainNode.sendMessageToServer(messageToSend);
-                }
-                case "WORK" -> {
-                    int tempWorkID = Integer.parseInt(elements[1].trim());
-                    int tempWorkDuration = Integer.parseInt(elements[2].trim());
-                    Work newWork = new Work(tempWorkID, tempWorkDuration, mainNode, thisClient);
-                    thisClient.newJob();
-                    newWork.start();
-                }
-                case "SHUTDOWN" -> {
-                    System.out.println("Main Thread: Server has issued a SHUTDOWN command, trying to exit the program.");
-                    System.exit(0);
-                }
-                case "STATUSCHECK" -> {
-                    if (thisClient.getIsWorking()) {
-                        messageToSend = "WORKING," + thisClient.getNodeIPAddress().getHostAddress() + "," + thisClient.getNodePort() + "," + thisClient.getCurrentJobs() + "," + thisClient.getMaxJobs() + " ";
-                    } else {
-                        messageToSend = "ALIVE," + thisClient.getNodeIPAddress().getHostAddress() + "," + thisClient.getNodePort();
-                    }
-                    System.out.println("Message to send is " + messageToSend);
-                    mainNode.sendMessageToServer(messageToSend);
-                }
-                default -> System.out.println("Unknown message received: " + inputMessage);
+                case "ACCEPTED" -> accepted();
+                case "WORK" -> work(elements);
+                case "SHUTDOWN" -> shutdown();
+                case "STATUSCHECK" -> statusCheck();
+                default -> unknown(inputMessage);
             }
         }
     }
 
     private String awaitMessageFromServer() {
-        try {
+        try (DatagramSocket socket = new DatagramSocket(thisClient.getNodePort())){
             byte[] buffer = new byte[1024];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-            DatagramSocket socket = new DatagramSocket(thisClient.getNodePort());
             socket.setSoTimeout(0);
             socket.receive(packet);
-            String outputText = new String(buffer);
-            socket.close();
-            return outputText;
+            return new String(buffer);
         } catch (Exception error) {
             error.printStackTrace();
             return "Error!";
         }
+    }
+
+    private void accepted() {
+        String messageToSend = "READY";
+        mainNode.sendMessageToServer(messageToSend);
+    }
+
+    private void work(String[] elements) {
+        int tempWorkID = Integer.parseInt(elements[1].trim());
+        int tempWorkDuration = Integer.parseInt(elements[2].trim());
+        Work newWork = new Work(tempWorkID, tempWorkDuration, mainNode, thisClient);
+        thisClient.newJob();
+        newWork.start();
+    }
+
+    private void shutdown() {
+        logger.log(Level.INFO, "Main Thread: Server has issued a SHUTDOWN command, trying to exit the program.");
+        System.exit(0);
+    }
+
+    private void statusCheck() {
+        String messageToSend;
+        if (thisClient.getIsWorking()) {
+            messageToSend = "WORKING," + thisClient.getNodeIPAddress().getHostAddress() + "," + thisClient.getNodePort() + "," + thisClient.getCurrentJobs() + "," + thisClient.getMaxJobs() + " ";
+        } else {
+            messageToSend = "ALIVE," + thisClient.getNodeIPAddress().getHostAddress() + "," + thisClient.getNodePort();
+        }
+        logger.log(Level.INFO, "Message to send is {}", messageToSend);
+        mainNode.sendMessageToServer(messageToSend);
+    }
+
+    private void unknown(String inputMessage) {
+        logger.log(Level.WARNING, "Unknown message received: {}", inputMessage);
     }
 }
