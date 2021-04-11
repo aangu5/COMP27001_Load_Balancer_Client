@@ -2,7 +2,7 @@
   <artifact type="jar" name="Sender:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/Sender_jar</output-path>
     <root id="archive" name="Sender.jar">
-      <element id="module-output" name="Sender" />
+      <element id="module-output" name="DNAOSNode" />
     </root>
   </artifact>
 </component>

@@ -8,14 +8,10 @@ public class Server {
     private InetAddress serverIPAddress;
     private int serverPort;
 
-
     public Server(InetAddress inputIP, int inputPort) {
         serverIPAddress = inputIP;
         serverPort = inputPort;
     }
-
-    public InetAddress getServerIPAddress() { return serverIPAddress; }
-    public int getServerPort() { return serverPort; }
 
     public void sendMessageToServer(String content) {
         try {
